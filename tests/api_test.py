@@ -39,7 +39,7 @@ def test_book_appointment(client, auth):
     assert appointment["ends_at"] == "2030-01-10T07:30:00Z"  # 30-minute service
     assert appointment["price_at_booking"] == "45.00"
 
-    fetched = client.get(f"/appointments/{appointment['id']}")
+    fetched = client.get(f"/appointments/{appointment['id']}", headers=auth)
     assert fetched.json() == appointment
 
 
@@ -68,8 +68,8 @@ def test_cancel_frees_the_slot(client, auth):
     assert rebooked.status_code == 201
 
 
-def test_lists_are_paginated_with_a_total(client):
-    page = client.get("/services", params={"limit": 2, "offset": 1}).json()
+def test_lists_are_paginated_with_a_total(client, auth):
+    page = client.get("/services", params={"limit": 2, "offset": 1}, headers=auth).json()
 
     assert page["total"] == 4
     assert page["limit"] == 2
@@ -81,8 +81,12 @@ def test_date_filter_uses_the_branch_local_day(client, auth):
     # 01:00 on the 11th in Riyadh is still the 10th in UTC (22:00).
     client.post("/appointments", json=booking("2030-01-11T01:00:00+03:00"), headers=auth)
 
-    on_11th = client.get(f"/branches/{RIYADH}/appointments", params={"date": "2030-01-11"})
-    on_10th = client.get(f"/branches/{RIYADH}/appointments", params={"date": "2030-01-10"})
+    on_11th = client.get(
+        f"/branches/{RIYADH}/appointments", params={"date": "2030-01-11"}, headers=auth
+    )
+    on_10th = client.get(
+        f"/branches/{RIYADH}/appointments", params={"date": "2030-01-10"}, headers=auth
+    )
     assert on_11th.json()["total"] == 1
     assert on_10th.json()["total"] == 0
 
@@ -157,13 +161,14 @@ def test_invalid_input_returns_422_without_echoing_values(client, auth):
     assert "secret-not-an-email" not in response.text
 
 
-def test_writes_need_a_valid_token(client):
+def test_every_endpoint_needs_a_valid_token(client):
     no_token = client.post("/appointments", json=booking())
     wrong_token = client.post(
         "/appointments", json=booking(), headers={"Authorization": "Bearer wrong"}
     )
+    read_without_token = client.get("/branches")
 
-    for response in (no_token, wrong_token):
+    for response in (no_token, wrong_token, read_without_token):
         assert response.status_code == 401
         assert response.json()["error"]["code"] == "unauthorized"
 

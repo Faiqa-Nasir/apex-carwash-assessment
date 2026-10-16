@@ -1,17 +1,17 @@
-"""GET /branches, GET /services. Seeded data, readable without a token."""
+"""GET /branches, GET /services. Seeded data. Token needed, like every endpoint."""
 
 from fastapi import APIRouter, Depends, Query
 
 from app.api.errors import error_responses
-from app.api.helpers import get_uow
+from app.api.helpers import get_uow, require_token
 from app.api.schemas import BranchPage, ServicePage
 from app.booking.services import queries
 from app.booking.services.unit_of_work import UnitOfWork
 
-router = APIRouter(tags=["catalog"])
+router = APIRouter(tags=["catalog"], dependencies=[Depends(require_token)])
 
 
-@router.get("/branches", responses=error_responses(422))
+@router.get("/branches", responses=error_responses(401, 422))
 def list_branches(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -22,7 +22,7 @@ def list_branches(
     return BranchPage(items=page.items, total=page.total, limit=limit, offset=offset)
 
 
-@router.get("/services", responses=error_responses(422))
+@router.get("/services", responses=error_responses(401, 422))
 def list_services(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),

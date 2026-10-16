@@ -8,7 +8,7 @@ branches, services and appointments.
 
 Built with: Python, FastAPI, PostgreSQL, Docker.
 
-**Demo token:** `demo-token-change-me` (needed for the protected endpoints)
+**Demo token:** `demo-token-change-me` (every endpoint needs it)
 
 Other documents:
 
@@ -34,7 +34,7 @@ This one command:
 Open **http://localhost:8000/docs** in your browser. You can try every
 endpoint there.
 
-Some endpoints need a password (a "token"). Click **Authorize** and enter:
+Every endpoint needs a password (a "token"). Click **Authorize** and enter:
 
 ```
 demo-token-change-me
@@ -89,10 +89,12 @@ TOKEN=demo-token-change-me
 API=http://localhost:8000
 ```
 
-**See all branches** (no token needed)
+Every request sends the token in the `Authorization` header.
+
+**See all branches**
 
 ```bash
-curl "$API/branches"
+curl "$API/branches" -H "Authorization: Bearer $TOKEN"
 ```
 ```json
 {"total": 2, "limit": 20, "offset": 0,
@@ -102,7 +104,7 @@ curl "$API/branches"
 Every list is split into pages. `limit` is how many items you get (1 to
 100), `offset` is how many to skip, and `total` is how many exist.
 
-**Add a customer** (token needed)
+**Add a customer**
 
 ```bash
 curl -X POST "$API/customers" -H "Authorization: Bearer $TOKEN" \
@@ -110,7 +112,7 @@ curl -X POST "$API/customers" -H "Authorization: Bearer $TOKEN" \
   -d '{"name": "Noor Ali", "email": "noor@example.com", "phone": "+966500000009"}'
 ```
 
-**Book an appointment** (token needed)
+**Book an appointment**
 
 The time must include a timezone, like `+03:00`.
 
@@ -139,16 +141,17 @@ If someone now tries to book 10:15 at the same branch, they get an error:
            "details": []}}
 ```
 
-**See a branch's appointments for one day** (no token needed)
+**See a branch's appointments for one day**
 
 ```bash
-curl "$API/branches/00000000-0000-0000-0000-00000000b001/appointments?date=2030-01-10&status=SCHEDULED"
+curl "$API/branches/00000000-0000-0000-0000-00000000b001/appointments?date=2030-01-10&status=SCHEDULED" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 The date means that day in the branch's own time. `/appointments` works the
 same way for all branches, and can also filter by `branch_id`.
 
-**Cancel or complete an appointment** (token needed)
+**Cancel or complete an appointment**
 
 ```bash
 curl -X POST "$API/appointments/<id>/cancel" -H "Authorization: Bearer $TOKEN"
@@ -160,19 +163,18 @@ an error: `"appointment is already cancelled"`.
 
 ### All endpoints
 
-| Method | Path | Token needed |
-|---|---|---|
-| GET | `/branches` | |
-| GET | `/services` | |
-| POST | `/customers` | yes |
-| GET | `/customers` | yes |
-| GET | `/customers/{customer_id}` | yes |
-| POST | `/appointments` | yes |
-| GET | `/appointments` | |
-| GET | `/appointments/{appointment_id}` | |
-| GET | `/branches/{branch_id}/appointments` | |
-| POST | `/appointments/{appointment_id}/cancel` | yes |
-| POST | `/appointments/{appointment_id}/complete` | yes |
+All endpoints need the token:
 
-Customer endpoints always need the token, because they contain personal
-details.
+| Method | Path |
+|---|---|
+| GET | `/branches` |
+| GET | `/services` |
+| POST | `/customers` |
+| GET | `/customers` |
+| GET | `/customers/{customer_id}` |
+| POST | `/appointments` |
+| GET | `/appointments` |
+| GET | `/appointments/{appointment_id}` |
+| GET | `/branches/{branch_id}/appointments` |
+| POST | `/appointments/{appointment_id}/cancel` |
+| POST | `/appointments/{appointment_id}/complete` |

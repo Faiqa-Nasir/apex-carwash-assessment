@@ -78,12 +78,13 @@ Times are saved in UTC. Each branch's timezone is used for the `date` filter.
 
 ## 6. APIs
 
-- `GET /branches`, `GET /services`: no token.
-- `POST /customers`, `GET /customers`, `GET /customers/{id}`: token needed
-  (personal data).
-- `POST /appointments`, `/cancel`, `/complete`: token needed.
-- `GET /appointments`, `/appointments/{id}`, `/branches/{id}/appointments`:
-  no token.
+Every endpoint needs the token.
+
+- Branches and services: `GET /branches`, `GET /services`.
+- Customers: `POST /customers`, `GET /customers`, `GET /customers/{id}`.
+- Appointments: `POST /appointments`, `GET /appointments`,
+  `GET /appointments/{id}`, `GET /branches/{id}/appointments`,
+  `POST /appointments/{id}/cancel`, `POST /appointments/{id}/complete`.
 
 Lists return pages (`limit`, `offset`, `total`). Full details are in the
 README and in Swagger at `/docs`.
@@ -126,7 +127,7 @@ Badly formed requests get 422, and anything unexpected gets 500.
 - All input is checked before the code runs (ids, timezones, email, lengths,
   page size).
 - No SQL injection: values are always passed separately from the SQL.
-- A token protects writes and customer data.
+- A token protects every endpoint, reads included.
 - No real secrets in git; only the demo token.
 - Error messages never show internals or repeat what the user sent.
 

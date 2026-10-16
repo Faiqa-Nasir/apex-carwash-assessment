@@ -1,7 +1,6 @@
 """POST /customers, GET /customers, GET /customers/{customer_id}.
 
-All need the token: creating is a write, and reads return personal data
-(emails and phone numbers).
+All need the token, like every endpoint.
 """
 
 from uuid import UUID

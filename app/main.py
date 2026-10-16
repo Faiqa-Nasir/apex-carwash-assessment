@@ -13,10 +13,9 @@ An API for a car wash company with several branches. Each branch takes one
 appointment at a time, so two appointments at the same branch can never
 overlap.
 
-**Token.** Some endpoints need a token. Click **Authorize** and enter it.
+**Token.** Every endpoint needs a token. Click **Authorize** and enter it.
 With Docker the token is `demo-token-change-me`. Without Docker, it is the
-`API_TOKEN` in your `.env` file. Branches, services and reading appointments
-need no token.
+`API_TOKEN` in your `.env` file.
 
 **Times.** Send times with a timezone, like `2030-01-10T10:00:00+03:00`.
 Times always come back in UTC (ending in `Z`). The `date` filter means that
@@ -33,11 +32,11 @@ customer `...c001` (Sara).
 """
 
 TAGS = [
-    {"name": "catalog", "description": "Branches and services. Read only, no token needed."},
-    {"name": "customers", "description": "Add and see customers. Token needed."},
+    {"name": "catalog", "description": "Branches and services. Read only."},
+    {"name": "customers", "description": "Add and see customers."},
     {
         "name": "appointments",
-        "description": "Book, list, cancel and complete. Changes need the token; reading does not.",
+        "description": "Book, list, cancel and complete.",
     },
 ]
 

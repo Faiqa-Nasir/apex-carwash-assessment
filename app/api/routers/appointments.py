@@ -1,7 +1,7 @@
 """Booking, listing, reading, cancelling and completing appointments.
 
 Thin: check auth, let Pydantic parse the input, call one command or query,
-shape the response. Writes need the token; reads do not.
+shape the response. Every endpoint needs the token.
 """
 
 from datetime import UTC, date, datetime
@@ -16,13 +16,12 @@ from app.booking.domain.appointment import AppointmentStatus
 from app.booking.services import commands, queries
 from app.booking.services.unit_of_work import UnitOfWork
 
-router = APIRouter(tags=["appointments"])
+router = APIRouter(tags=["appointments"], dependencies=[Depends(require_token)])
 
 
 @router.post(
     "/appointments",
     status_code=201,
-    dependencies=[Depends(require_token)],
     responses=error_responses(400, 401, 404, 409, 422),
 )
 def book_appointment(body: AppointmentIn, uow: UnitOfWork = Depends(get_uow)) -> AppointmentOut:
@@ -45,7 +44,7 @@ def book_appointment(body: AppointmentIn, uow: UnitOfWork = Depends(get_uow)) ->
     return AppointmentOut.model_validate(appointment)
 
 
-@router.get("/appointments", responses=error_responses(422))
+@router.get("/appointments", responses=error_responses(401, 422))
 def list_appointments(
     branch_id: UUID | None = None,
     status: AppointmentStatus | None = None,
@@ -63,7 +62,7 @@ def list_appointments(
     return AppointmentPage(items=page.items, total=page.total, limit=limit, offset=offset)
 
 
-@router.get("/branches/{branch_id}/appointments", responses=error_responses(404, 422))
+@router.get("/branches/{branch_id}/appointments", responses=error_responses(401, 404, 422))
 def list_branch_appointments(
     branch_id: UUID,
     status: AppointmentStatus | None = None,
@@ -77,7 +76,7 @@ def list_branch_appointments(
     return AppointmentPage(items=page.items, total=page.total, limit=limit, offset=offset)
 
 
-@router.get("/appointments/{appointment_id}", responses=error_responses(404, 422))
+@router.get("/appointments/{appointment_id}", responses=error_responses(401, 404, 422))
 def get_appointment(appointment_id: UUID, uow: UnitOfWork = Depends(get_uow)) -> AppointmentOut:
     """One appointment by id."""
     return AppointmentOut.model_validate(queries.get_appointment(uow, appointment_id))
@@ -85,7 +84,6 @@ def get_appointment(appointment_id: UUID, uow: UnitOfWork = Depends(get_uow)) ->
 
 @router.post(
     "/appointments/{appointment_id}/cancel",
-    dependencies=[Depends(require_token)],
     responses=error_responses(401, 404, 409, 422),
 )
 def cancel_appointment(appointment_id: UUID, uow: UnitOfWork = Depends(get_uow)) -> AppointmentOut:
@@ -99,7 +97,6 @@ def cancel_appointment(appointment_id: UUID, uow: UnitOfWork = Depends(get_uow))
 
 @router.post(
     "/appointments/{appointment_id}/complete",
-    dependencies=[Depends(require_token)],
     responses=error_responses(401, 404, 409, 422),
 )
 def complete_appointment(
