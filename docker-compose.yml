@@ -1,0 +1,35 @@
+# docker compose up --build
+#   -> Postgres, then the API on http://localhost:8000 (Swagger at /docs).
+# The API container creates the tables and loads the seed on every start;
+# both are safe to repeat.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: carwash
+      POSTGRES_PASSWORD: carwash
+      POSTGRES_DB: carwash
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carwash -d carwash"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://carwash:carwash@db:5432/carwash
+      # Demo token. Set API_TOKEN in your shell to use a different one.
+      API_TOKEN: ${API_TOKEN:-demo-token-change-me}
+      # Used by `docker compose exec api pytest`.
+      TEST_DATABASE_URL: postgresql://carwash:carwash@db:5432/carwash_test
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
