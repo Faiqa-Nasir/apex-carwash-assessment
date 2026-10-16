@@ -58,6 +58,8 @@ would only add extra code.
 
 ## 4. Assumptions
 
+- A branch can have only one appointment at a time, because it has only one
+  handler. Different branches never clash.
 - Customers aren't linked to branches.
 - Services aren't branch-specific.
 - Customers can book at any branch, even two branches at the same time.
