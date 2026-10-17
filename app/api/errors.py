@@ -105,9 +105,21 @@ def add_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(Exception, handle_unexpected_error)
 
 
+ERROR_DESCRIPTIONS = {
+    400: "Breaks a rule, e.g. a booking in the past",
+    401: "Token missing or wrong",
+    404: "Id not found",
+    409: "Clashes with saved data, e.g. email already used or slot already booked",
+    422: "Badly formed request",
+}
+
+
 def error_responses(*status_codes: int) -> dict:
     """The error responses a route can return, for the OpenAPI docs."""
     responses = {}
     for status_code in status_codes:
-        responses[status_code] = {"model": ErrorResponse}
+        responses[status_code] = {
+            "model": ErrorResponse,
+            "description": ERROR_DESCRIPTIONS[status_code],
+        }
     return responses

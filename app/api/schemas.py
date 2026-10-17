@@ -16,8 +16,8 @@ from app.booking.domain.appointment import AppointmentStatus
 
 
 class ErrorBody(BaseModel):
-    code: str = Field(examples=["overlapping_booking"])
-    message: str = Field(examples=["this slot at the branch is already booked"])
+    code: str
+    message: str
     details: list[dict] = Field(default=[], examples=[[]])
 
 
